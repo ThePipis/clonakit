@@ -1,6 +1,6 @@
 # Aviso legal y método de creación
 
-**Celda** es una demo original de [ClonaKit](https://www.divisualproject.academy), inspirada en las funciones de **Airtable**.
+**Celda** es una demo original de ClonaKit, inspirada en las funciones de **Airtable**.
 
 No contiene código, textos, imágenes, iconos, sonidos, nombres ni marcas de Airtable. Airtable es una marca de su titular; esta demo no está afiliada a él ni cuenta con su respaldo.
 

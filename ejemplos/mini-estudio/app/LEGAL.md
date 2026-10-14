@@ -1,6 +1,6 @@
 # Aviso legal y método de creación
 
-**MiniEstudio** es una aplicación original creada con [ClonaKit](https://www.divisualproject.academy), inspirada en las funciones de **OBS Studio**.
+**MiniEstudio** es una aplicación original creada con ClonaKit, inspirada en las funciones de **OBS Studio**.
 
 No contiene código, textos, imágenes, iconos, sonidos, nombres ni marcas de OBS Studio. OBS Studio es un proyecto de código abierto con licencia GPL-2.0 y su nombre y logo pertenecen a sus titulares; este proyecto no está afiliado a ellos ni cuenta con su respaldo.
 

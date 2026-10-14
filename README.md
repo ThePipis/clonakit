@@ -2,7 +2,7 @@
 
 **Crea tu propia versión de las herramientas que usas en tu negocio. De forma legal y sin saber programar.**
 
-Un regalo de [Divisual Project Academy](https://www.divisualproject.academy), adaptado para su uso directo con **Google Antigravity**.
+Adaptado para su uso directo con **Google Antigravity**.
 
 ClonaKit convierte a **Antigravity** en tu tutor: te acompaña desde "me gusta cómo funciona esta app" hasta tu propia versión publicada en internet con tu marca. Por debajo usa [REA](https://github.com/morluto/rea), una herramienta que averigua cómo está construida una app sin ver su código.
 
@@ -89,7 +89,7 @@ ClonaKit/
 
 ## Sigue aprendiendo
 
-¿Dudas, ideas o quieres enseñar tu clon? Únete a las **mentorías gratuitas de los domingos** en [divisualproject.academy](https://www.divisualproject.academy).
+¿Dudas, ideas o quieres enseñar tu clon? Abre una issue en el repositorio o compártelo con la comunidad.
 
 ## Uso responsable
 
@@ -98,4 +98,4 @@ ClonaKit es para aprender y crear cosas propias. No lo uses para copiar código 
 ## Créditos y licencia
 
 - [REA](https://github.com/morluto/rea), de morluto y sus colaboradores (licencia MIT), hace la investigación. ClonaKit lo usa como dependencia sin modificarlo.
-- ClonaKit © 2026 Divisual Project, con licencia [MIT](LICENSE).
+- ClonaKit, con licencia [MIT](LICENSE).

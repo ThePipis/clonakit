@@ -1,6 +1,6 @@
 # Aviso legal y método de creación
 
-**Embudo** es una demo original de [ClonaKit](https://www.divisualproject.academy), inspirada en las funciones de **ActiveCampaign**.
+**Embudo** es una demo original de ClonaKit, inspirada en las funciones de **ActiveCampaign**.
 
 No contiene código, textos, imágenes, iconos, sonidos, nombres ni marcas de ActiveCampaign. ActiveCampaign es una marca de su titular; esta demo no está afiliada a él ni cuenta con su respaldo.
 

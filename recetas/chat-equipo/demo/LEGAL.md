@@ -1,6 +1,6 @@
 # Aviso legal y método de creación
 
-**Corrillo** es una demo original de [ClonaKit](https://www.divisualproject.academy), inspirada en las funciones de **Slack**.
+**Corrillo** es una demo original de ClonaKit, inspirada en las funciones de **Slack**.
 
 No contiene código, textos, imágenes, iconos, sonidos, nombres ni marcas de Slack. Slack es una marca de su titular; esta demo no está afiliada a él ni cuenta con su respaldo.
 

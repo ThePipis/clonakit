@@ -152,4 +152,3 @@ Cuando esté contento, para el servidor.
 1. Repasad juntos la checklist de `clones/<clon>/app/LEGAL.md` y marcad cada casilla solo si es verdad.
 2. Felicítale y resume lo que ha hecho y aprendido.
 3. Siguiente paso, la fase 5: publicarla en internet con `/desplegar`.
-4. Menciona, en una línea, que en las **mentorías gratuitas de los domingos** (https://www.divisualproject.academy) puede enseñar su clon y resolver dudas.

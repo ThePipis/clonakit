@@ -28,6 +28,6 @@ Estas lecciones son la guía por escrito del tutor de ClonaKit. Puedes seguirlas
 | `/clonar` | 02, 03, 04 y 05 |
 | `/desplegar` | 06, 07 y 08 |
 
-¿Dudas? Tráelas a las **mentorías gratuitas de los domingos** en [divisualproject.academy](https://www.divisualproject.academy).
+¿Dudas? Abre una issue en el repositorio o compártelas con la comunidad.
 
 > Estas lecciones no son asesoría legal. Si vas a usar tu app de forma comercial o tienes dudas, consulta a un abogado.

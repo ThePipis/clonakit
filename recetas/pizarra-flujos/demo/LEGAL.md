@@ -1,6 +1,6 @@
 # Aviso legal y método de creación
 
-**Trazo** es una demo original de [ClonaKit](https://www.divisualproject.academy), inspirada en las funciones de **Excalidraw**.
+**Trazo** es una demo original de ClonaKit, inspirada en las funciones de **Excalidraw**.
 
 No contiene código, textos, imágenes, iconos, sonidos, nombres ni marcas de Excalidraw. Excalidraw es una marca de su titular; esta demo no está afiliada a él ni cuenta con su respaldo. Es un proyecto de código abierto (licencia MIT), pero esta demo no reutiliza su código.
 

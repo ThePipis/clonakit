@@ -1,6 +1,6 @@
 # Aviso legal y método de creación
 
-**<Nombre de tu app>** es una aplicación original creada con [ClonaKit](https://www.divisualproject.academy), inspirada en las funciones de **<app original>**.
+**<Nombre de tu app>** es una aplicación original creada con ClonaKit, inspirada en las funciones de **<app original>**.
 
 No contiene código, textos, imágenes, iconos, sonidos, nombres ni marcas de <app original>. <App original> es una marca de su titular; este proyecto no está afiliado a él ni cuenta con su respaldo.
 

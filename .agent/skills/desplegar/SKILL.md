@@ -86,4 +86,4 @@ Sigue [formacion/08-dominio-y-actualizaciones.md](../../../formacion/08-dominio-
 
 Resume lo que ha aprendido: Git, GitHub, Vercel y el ciclo de actualización. Recuérdale que comparta su app con su propio nombre y el "inspirada en…" del README, y anímale a recrear otra función o mejorar esta con `/clonar`.
 
-Es su gran momento: invítale a enseñar su app publicada en las **mentorías gratuitas de los domingos** de Divisual Project Academy (https://www.divisualproject.academy), donde puede resolver dudas y seguir aprendiendo.
+Es su gran momento: anímale a compartir su app publicada con la comunidad, donde puede resolver dudas y seguir aprendiendo.
