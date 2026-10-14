@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MiniEstudio</title>
+  <meta name="description" content="Compón tu pantalla, tu cámara y textos en escenas y grábalo en vídeo, desde el navegador.">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <section class="preview-wrap">
+      <canvas id="preview" width="1920" height="1080" aria-label="Vista previa"></canvas>
+    </section>
+
+    <section class="docks">
+      <div class="dock">
+        <header>Escenas</header>
+        <ul id="scene-list" class="list"></ul>
+        <footer>
+          <button id="add-scene" title="Añadir escena">+</button>
+          <button id="remove-scene" title="Eliminar escena">−</button>
+        </footer>
+      </div>
+
+      <div class="dock">
+        <header>Fuentes</header>
+        <ul id="source-list" class="list"></ul>
+        <footer>
+          <div class="menu-wrap">
+            <button id="add-source" title="Añadir fuente">+</button>
+            <div id="source-menu" class="menu" hidden>
+              <button data-kind="screen">Captura de pantalla</button>
+              <button data-kind="camera">Cámara</button>
+              <button data-kind="text">Texto</button>
+              <button data-kind="image">Imagen</button>
+            </div>
+          </div>
+          <button id="remove-source" title="Eliminar fuente">−</button>
+          <button id="source-up" title="Subir">↑</button>
+          <button id="source-down" title="Bajar">↓</button>
+        </footer>
+      </div>
+
+      <div class="dock">
+        <header>Mezclador de audio</header>
+        <div id="mixer" class="mixer"></div>
+        <footer>
+          <button id="add-mic">+ Micrófono</button>
+        </footer>
+      </div>
+
+      <div class="dock">
+        <header>Controles</header>
+        <div class="controls">
+          <button id="record" class="record">Iniciar grabación</button>
+          <a id="last-recording" hidden>Descargar última grabación</a>
+          <p class="hint">1–9 cambia de escena · flechas mueven · Supr borra · doble clic ajusta a pantalla</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="status">
+      <span id="rec-status">REC 00:00:00</span>
+      <span id="fps">— FPS</span>
+      <span>1920×1080</span>
+    </footer>
+  </main>
+
+  <div id="media-pool" aria-hidden="true"></div>
+  <input type="file" id="image-input" accept="image/*" hidden>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

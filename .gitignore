@@ -1,0 +1,13 @@
+# Dependencias
+node_modules/
+
+# Tus clones son tuyos: cada uno se publica en su propio repositorio
+clones/*
+!clones/.gitkeep
+
+# Sistema y secretos
+.DS_Store
+Thumbs.db
+.env
+.env.*
+.vercel/

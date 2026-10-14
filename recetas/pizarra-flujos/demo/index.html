@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="es" data-tema="claro">
+<head>
+  <meta charset="utf-8">
+  <!-- maximum-scale=1 evita que el iPhone amplíe la página al escribir con letra pequeña (el zoom lo hace la app). -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <title>Trazo · pizarra para diagramas a mano</title>
+  <meta name="description" content="Pizarra web para dibujar diagramas de flujo con aspecto de boceto a mano. Se guarda sola en tu navegador y se exporta como imagen.">
+  <meta name="theme-color" content="#FBF7EE">
+  <!-- El icono de la pestaña lo dibuja app.js con el mismo trazo a mano que el lienzo. -->
+  <link rel="icon" id="favicon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- El lienzo ocupa toda la ventana; todo lo demás flota encima. -->
+  <canvas id="lienzo" aria-label="Pizarra de dibujo"></canvas>
+
+  <!-- Cuadro para escribir: se coloca sobre la forma, la flecha o el texto que se edita. -->
+  <textarea id="editor-texto" hidden wrap="off" spellcheck="false" autocomplete="off" aria-label="Texto del elemento"></textarea>
+
+  <!-- Marca (arriba a la izquierda) -->
+  <div class="marca" aria-hidden="true">
+    <canvas id="logo"></canvas>
+    <span>Trazo</span>
+  </div>
+
+  <!-- Barra de herramientas (arriba, centrada). Atajos: números del 1 al 8. -->
+  <nav class="panel barra-herramientas" aria-label="Herramientas">
+    <button type="button" class="herramienta" data-herramienta="seleccionar" data-ayuda="Seleccionar · 1" aria-label="Seleccionar (1)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5v15l4-3.6 2.6 5.6 2.4-1.1-2.6-5.5H18Z"/></svg>
+    </button>
+    <button type="button" class="herramienta" data-herramienta="mano" data-ayuda="Mano · 2" aria-label="Mano (2)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 12.5V6a1.5 1.5 0 0 1 3 0v5.5M11 11V4.5a1.5 1.5 0 0 1 3 0V11m0-.5V6a1.5 1.5 0 0 1 3 0v5m0-1.5a1.5 1.5 0 0 1 3 0V14a7 7 0 0 1-7 7h-1a6 6 0 0 1-4.8-2.4l-3-4.1a1.5 1.5 0 0 1 2.4-1.8L8 15"/></svg>
+    </button>
+    <span class="separador" aria-hidden="true"></span>
+    <button type="button" class="herramienta" data-herramienta="rectangulo" data-ayuda="Rectángulo · 3" aria-label="Rectángulo (3)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 6.2c5-.4 10-.3 15 .1.3 3.9.2 7.7-.1 11.5-5 .3-10 .3-15-.1-.2-3.8-.2-7.6.1-11.5Z"/></svg>
+    </button>
+    <button type="button" class="herramienta" data-herramienta="rombo" data-ayuda="Rombo · 4" aria-label="Rombo (4)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.4c3 2.8 5.8 5.7 8.5 8.7-2.9 2.8-5.7 5.6-8.6 8.5-2.9-2.8-5.7-5.7-8.4-8.7 2.8-2.8 5.6-5.6 8.5-8.5Z"/></svg>
+    </button>
+    <button type="button" class="herramienta" data-herramienta="elipse" data-ayuda="Elipse · 5" aria-label="Elipse (5)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5.4c4.6-.1 8.5 2.8 8.5 6.6s-3.8 6.7-8.6 6.6C7.2 18.5 3.4 15.7 3.5 12 3.6 8.2 7.4 5.4 12 5.4Z"/></svg>
+    </button>
+    <button type="button" class="herramienta" data-herramienta="flecha" data-ayuda="Flecha · 6" aria-label="Flecha (6)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.3c4.9-4.8 9.8-9.7 14.6-14.7M11.5 4.8c2.6-.2 5.1-.3 7.6-.2.2 2.5.1 5-.2 7.6"/></svg>
+    </button>
+    <button type="button" class="herramienta" data-herramienta="texto" data-ayuda="Texto · 7" aria-label="Texto (7)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 6.4c4.4-.3 8.7-.3 13 .1M12 6.4c.2 4.5.1 9-.1 13.4M9 19.8c2-.1 4-.1 6 0"/></svg>
+    </button>
+    <button type="button" class="herramienta" data-herramienta="goma" data-ayuda="Goma · 8" aria-label="Goma (8)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.2 4.6 5.3 5.3-8.8 8.8H6.3l-2.6-2.6a1.5 1.5 0 0 1 0-2.1ZM8.9 9.9l5.3 5.3M10.8 19.4h9"/></svg>
+    </button>
+  </nav>
+
+  <!-- Panel de estilo (izquierda). Solo se ve con algo seleccionado o una herramienta de dibujo. -->
+  <aside id="panel-estilo" class="panel panel-estilo" aria-label="Estilo" hidden>
+    <fieldset id="grupo-trazo">
+      <legend>Trazo</legend>
+      <!-- Las 6 muestras de color las crea interfaz.js a partir de la paleta. -->
+      <div class="opciones colores" id="colores"></div>
+    </fieldset>
+
+    <fieldset id="grupo-relleno">
+      <legend>Relleno</legend>
+      <div class="opciones">
+        <button type="button" class="opcion" data-estilo="relleno" data-valor="ninguno" title="Sin relleno" aria-label="Sin relleno">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+        </button>
+        <button type="button" class="opcion" data-estilo="relleno" data-valor="suave" title="Relleno suave" aria-label="Relleno suave">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2" class="relleno-suave"/></svg>
+        </button>
+      </div>
+    </fieldset>
+
+    <fieldset id="grupo-grosor">
+      <legend>Grosor</legend>
+      <div class="opciones">
+        <button type="button" class="opcion" data-estilo="grosor" data-valor="1" title="Fino" aria-label="Fino">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16" style="stroke-width:1.2"/></svg>
+        </button>
+        <button type="button" class="opcion" data-estilo="grosor" data-valor="2" title="Medio" aria-label="Medio">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16" style="stroke-width:2.4"/></svg>
+        </button>
+        <button type="button" class="opcion" data-estilo="grosor" data-valor="4" title="Grueso" aria-label="Grueso">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16" style="stroke-width:4.2"/></svg>
+        </button>
+      </div>
+    </fieldset>
+
+    <fieldset id="grupo-linea">
+      <legend>Línea</legend>
+      <div class="opciones">
+        <button type="button" class="opcion" data-estilo="linea" data-valor="continua" title="Continua" aria-label="Línea continua">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16"/></svg>
+        </button>
+        <button type="button" class="opcion" data-estilo="linea" data-valor="discontinua" title="Discontinua" aria-label="Línea discontinua">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16" style="stroke-dasharray:3.5 3"/></svg>
+        </button>
+      </div>
+    </fieldset>
+
+    <fieldset id="grupo-acciones">
+      <legend>Acciones</legend>
+      <div class="opciones">
+        <button type="button" class="opcion" id="accion-duplicar" title="Duplicar (Ctrl/Cmd + D)" aria-label="Duplicar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/></svg>
+        </button>
+        <button type="button" class="opcion" id="accion-borrar" title="Borrar (Supr)" aria-label="Borrar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 7V4.8h4V7M7 7l.8 12.2h8.4L17 7M10.5 10.5v5.5M13.5 10.5v5.5"/></svg>
+        </button>
+        <button type="button" class="opcion" id="accion-frente" title="Traer al frente" aria-label="Traer al frente">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="4" width="12" height="10" rx="1.5" class="relleno-solido"/><path d="M5 9v9.5a1.5 1.5 0 0 0 1.5 1.5H16"/></svg>
+        </button>
+        <button type="button" class="opcion" id="accion-fondo" title="Enviar al fondo" aria-label="Enviar al fondo">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="12" height="10" rx="1.5" class="relleno-solido"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h9A1.5 1.5 0 0 1 20 5.5v7a1.5 1.5 0 0 1-1.5 1.5H19"/></svg>
+        </button>
+      </div>
+    </fieldset>
+  </aside>
+
+  <!-- Zoom, deshacer y rehacer (abajo a la izquierda) -->
+  <div class="panel barra-inferior">
+    <button type="button" id="zoom-menos" class="boton-icono" title="Alejar" aria-label="Alejar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg>
+    </button>
+    <button type="button" id="zoom-valor" class="zoom-valor" title="Volver al 100 %" aria-label="Zoom actual. Pulsa para volver al 100 %">100 %</button>
+    <button type="button" id="zoom-mas" class="boton-icono" title="Acercar" aria-label="Acercar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12M12 6v12"/></svg>
+    </button>
+    <span class="separador" aria-hidden="true"></span>
+    <button type="button" id="deshacer" class="boton-icono" title="Deshacer (Ctrl/Cmd + Z)" aria-label="Deshacer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4.5 9.5 9 5M4.5 9.5H14a5.5 5.5 0 0 1 0 11h-3"/></svg>
+    </button>
+    <button type="button" id="rehacer" class="boton-icono" title="Rehacer (Ctrl/Cmd + Mayús + Z)" aria-label="Rehacer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 14 4.5-4.5L15 5m4.5 4.5H10a5.5 5.5 0 0 0 0 11h3"/></svg>
+    </button>
+  </div>
+
+  <!-- Menú (arriba a la derecha) -->
+  <div class="menu">
+    <button type="button" id="boton-menu" class="panel boton-menu" aria-haspopup="true" aria-expanded="false" aria-controls="menu-lista" title="Menú" aria-label="Menú">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15M4.5 12h15M4.5 17h15"/></svg>
+    </button>
+    <div id="menu-lista" class="panel menu-lista" role="menu" hidden>
+      <button type="button" role="menuitem" data-menu="abrir">Abrir archivo…</button>
+      <button type="button" role="menuitem" data-menu="guardar">Guardar archivo</button>
+      <button type="button" role="menuitem" data-menu="exportar">Exportar imagen…</button>
+      <hr>
+      <button type="button" role="menuitemcheckbox" id="menu-cuadricula" data-menu="cuadricula" aria-checked="true">Mostrar cuadrícula</button>
+      <button type="button" role="menuitemcheckbox" id="menu-oscuro" data-menu="oscuro" aria-checked="false">Modo oscuro</button>
+      <hr>
+      <button type="button" role="menuitem" data-menu="vaciar" class="peligro">Vaciar lienzo…</button>
+    </div>
+  </div>
+
+  <!-- Selector de archivos del sistema (invisible: lo abre la opción "Abrir archivo"). -->
+  <input type="file" id="entrada-archivo" accept=".json,application/json" hidden>
+
+  <!-- Ventana de exportar -->
+  <dialog id="dialogo-exportar" class="ventana ventana-exportar" aria-labelledby="titulo-exportar">
+    <form id="formulario-exportar" method="dialog">
+      <h2 id="titulo-exportar">Exportar imagen</h2>
+      <div class="vista-previa">
+        <img id="vista-previa" alt="Vista previa de la imagen" hidden>
+      </div>
+      <p id="exportar-mensaje" class="mensaje" role="status"></p>
+
+      <div class="opciones-exportar">
+        <fieldset>
+          <legend>Formato</legend>
+          <div class="segmentos">
+            <label><input type="radio" name="formato" value="png" checked><span>PNG</span></label>
+            <label><input type="radio" name="formato" value="svg"><span>SVG</span></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Qué exportar</legend>
+          <div class="segmentos">
+            <label><input type="radio" name="alcance" value="todo" checked><span>Todo</span></label>
+            <label><input type="radio" name="alcance" value="seleccion"><span>Solo la selección</span></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Fondo</legend>
+          <div class="segmentos">
+            <label><input type="radio" name="fondo" value="con" checked><span>Con fondo</span></label>
+            <label><input type="radio" name="fondo" value="sin"><span>Transparente</span></label>
+          </div>
+        </fieldset>
+        <fieldset id="grupo-escala">
+          <legend>Escala (solo PNG)</legend>
+          <div class="segmentos">
+            <label><input type="radio" name="escala" value="1"><span>1×</span></label>
+            <label><input type="radio" name="escala" value="2" checked><span>2×</span></label>
+            <label><input type="radio" name="escala" value="3"><span>3×</span></label>
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="botones">
+        <button type="submit" value="cerrar" class="secundario">Cerrar</button>
+        <button type="button" id="exportar-copiar" class="secundario">Copiar PNG</button>
+        <button type="button" id="exportar-descargar" class="principal">Descargar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Ventana para preguntas de sí o no (vaciar, sustituir el dibujo...) -->
+  <dialog id="dialogo-preguntar" class="ventana ventana-preguntar">
+    <form method="dialog">
+      <p id="pregunta-texto"></p>
+      <div class="botones">
+        <button type="submit" value="no" class="secundario" autofocus>Cancelar</button>
+        <button type="submit" value="si" id="pregunta-si" class="principal">Aceptar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Aviso breve (abajo, centrado) -->
+  <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+
+  <!-- Capa que aparece al arrastrar un archivo sobre la ventana -->
+  <div id="capa-soltar" class="capa-soltar" hidden>
+    <p>Suelta aquí tu archivo <strong>.json</strong> para abrir el dibujo</p>
+  </div>
+
+  <noscript><p class="sin-js">Trazo necesita JavaScript para funcionar. Actívalo en tu navegador y recarga la página.</p></noscript>
+
+  <!-- type="module" carga app.js después del HTML y permite usar import/export entre archivos. -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>

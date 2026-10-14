@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Corrillo · chat de equipo</title>
+  <meta name="description" content="Corrillo: el chat de tu equipo ordenado por canales, con hilos, reacciones y búsqueda. Demo que funciona en tu navegador.">
+  <meta name="theme-color" content="#17413A">
+  <!-- Icono de la pestaña: el logo dibujado en SVG dentro de la propia página (no hace falta ningún archivo). -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%2317413A'/%3E%3Cg transform='translate(2 1.5) scale(.9)'%3E%3Cpath d='M22 4h8a7 7 0 0 1 7 7v5a7 7 0 0 1-5 6.7V28l-5.2-4.6H22a7 7 0 0 1-7-7V11a7 7 0 0 1 7-7z' fill='%23F07B5A'/%3E%3Cpath d='M24.4 16.6A10 10 0 1 0 24.4 29.4' fill='none' stroke='%23E8F0EC' stroke-width='5.6' stroke-linecap='round'/%3E%3Cpath d='M6.2 28.6 3.6 37.4l8.8-4.6z' fill='%23E8F0EC'/%3E%3C/g%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Barra superior: la caja de búsqueda a lo ancho -->
+    <header class="barra-superior">
+      <div class="barra-izquierda">
+        <button class="boton-icono oscuro solo-movil" id="btn-menu" type="button" aria-label="Abrir canales y equipo" aria-controls="lateral" aria-expanded="false"><span data-icono="menu"></span></button>
+        <span class="marca-movil solo-movil"><span data-logo></span></span>
+      </div>
+      <form class="busqueda" id="form-busqueda" role="search">
+        <span data-icono="buscar"></span>
+        <input id="caja-busqueda" type="search" placeholder="Buscar en todos los canales e hilos" aria-label="Buscar mensajes" autocomplete="off" enterkeyhint="search">
+        <kbd class="solo-escritorio">Intro</kbd>
+      </form>
+      <div class="barra-derecha">
+        <button class="boton-icono oscuro" id="btn-ajustes" type="button" aria-label="Ajustes y datos" title="Ajustes y datos"><span data-icono="ajustes"></span></button>
+      </div>
+    </header>
+
+    <div class="cuerpo" id="cuerpo">
+      <!-- Barra lateral: marca, persona actual, canales y equipo -->
+      <aside class="lateral" id="lateral" aria-label="Canales y equipo">
+        <div class="lateral-cabecera">
+          <span data-logo></span>
+          <strong class="nombre-app">Corrillo</strong>
+          <button class="etiqueta-demo" id="btn-modo-demo" type="button" title="¿Qué significa el modo demo?">Modo demo</button>
+        </div>
+
+        <div class="selector-persona">
+          <button class="persona-actual" id="btn-persona" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="menu-personas">
+            <span id="persona-avatar"></span>
+            <span class="persona-textos"><small>Escribes como</small><strong id="persona-nombre"></strong></span>
+            <span data-icono="abajo"></span>
+          </button>
+          <div class="menu-personas" id="menu-personas" role="listbox" aria-label="Cambiar de persona" hidden></div>
+        </div>
+
+        <nav class="lateral-scroll" aria-label="Canales">
+          <div class="seccion-titulo">
+            <span>Canales</span>
+            <button class="boton-mini" id="btn-crear-canal-mini" type="button" aria-label="Crear canal" title="Crear canal"><span data-icono="mas"></span></button>
+          </div>
+          <ul class="lista-canales" id="lista-canales"></ul>
+          <button class="lateral-accion" id="btn-crear-canal" type="button"><span data-icono="mas"></span> Crear canal</button>
+          <div id="zona-archivados"></div>
+
+          <div class="seccion-titulo">
+            <span>Equipo</span>
+            <button class="boton-mini con-texto" id="btn-equipo" type="button" title="Añadir, editar o borrar personas"><span data-icono="equipo"></span> Gestionar</button>
+          </div>
+          <ul class="lista-equipo" id="lista-equipo"></ul>
+          <p class="lateral-pista">Pulsa a alguien para escribir como esa persona.</p>
+        </nav>
+      </aside>
+      <div class="velo" id="velo" hidden></div>
+
+      <!-- Centro: el canal abierto -->
+      <main class="zona-canal" id="zona-canal">
+        <header class="canal-cabecera">
+          <div class="canal-titulos">
+            <h1 id="canal-nombre"></h1>
+            <p id="canal-descripcion"></p>
+          </div>
+          <div class="canal-acciones">
+            <button class="boton-icono" id="btn-editar-canal" type="button" title="Editar nombre y descripción" aria-label="Editar canal"><span data-icono="editar"></span></button>
+            <button class="boton-icono" id="btn-archivar-canal" type="button" title="Archivar canal" aria-label="Archivar canal"><span data-icono="archivar"></span></button>
+          </div>
+        </header>
+        <div class="aviso-archivado" id="aviso-archivado" hidden>
+          <span data-icono="archivar"></span>
+          <span>Este canal está archivado: puedes leerlo y buscar en él, pero no escribir.</span>
+          <button class="boton secundario pequeno" id="btn-desarchivar" type="button">Desarchivar</button>
+        </div>
+        <div class="lista-mensajes" id="lista-mensajes" aria-label="Mensajes del canal"></div>
+        <div data-compositor="canal"></div>
+      </main>
+
+      <!-- Panel derecho: un hilo o los resultados de búsqueda -->
+      <aside class="panel" id="panel" aria-labelledby="panel-titulo" hidden>
+        <header class="panel-cabecera">
+          <button class="boton-icono" id="btn-panel-volver" type="button" aria-label="Volver a los resultados" title="Volver a los resultados" hidden><span data-icono="volver"></span></button>
+          <div class="panel-titulos">
+            <h2 id="panel-titulo"></h2>
+            <p id="panel-subtitulo"></p>
+          </div>
+          <button class="boton-icono" id="btn-panel-cerrar" type="button" aria-label="Cerrar panel" title="Cerrar (Esc)"><span data-icono="cerrar"></span></button>
+        </header>
+        <div class="panel-filtros" id="panel-filtros" hidden>
+          <label>Canal <select id="filtro-canal"></select></label>
+          <label>Persona <select id="filtro-persona"></select></label>
+        </div>
+        <div class="panel-cuerpo" id="panel-cuerpo"></div>
+        <div data-compositor="hilo"></div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- ===================== Ventanas ===================== -->
+
+  <!-- Primera visita -->
+  <dialog class="dialogo dialogo-bienvenida" id="dlg-bienvenida" aria-labelledby="bienvenida-titulo">
+    <div class="dialogo-caja">
+      <div class="bienvenida-logo"><span data-logo></span></div>
+      <h2 id="bienvenida-titulo">Te damos la bienvenida a Corrillo</h2>
+      <p class="entradilla">El chat de tu equipo, ordenado por canales, con hilos, reacciones y búsqueda.</p>
+      <div class="nota-demo">
+        <span data-icono="info"></span>
+        <p><strong>Esto es una demo en un solo dispositivo.</strong> No hay servidor, así que los mensajes <strong>no llegan</strong> a otros móviles ni ordenadores: todo se guarda en este navegador. Para simular a tu equipo, cambias de «persona» con un clic.</p>
+      </div>
+      <p class="nota-privacidad"><span data-icono="candado"></span> No uses datos reales de clientes: se quedan en este navegador y cualquiera que use este ordenador puede verlos.</p>
+      <div class="opciones-inicio">
+        <button class="opcion destacada" id="btn-empezar-ejemplo" type="button">
+          <span class="opcion-etiqueta">Recomendado</span>
+          <strong>Cargar un ejemplo</strong>
+          <span>3 personas y los canales #avisos, #ventas y #charla, con mensajes, hilos y reacciones para curiosear.</span>
+        </button>
+        <button class="opcion" id="btn-empezar-vacio" type="button">
+          <strong>Empezar vacío</strong>
+          <span>Te crea la persona «Tú» y el canal #avisos. El resto lo pones tú.</span>
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Qué es el modo demo -->
+  <dialog class="dialogo dialogo-pequeno" id="dlg-demo" aria-labelledby="demo-titulo">
+    <div class="dialogo-caja">
+      <header class="dialogo-cabecera">
+        <h2 id="demo-titulo">Modo demo</h2>
+        <button class="boton-icono" type="button" data-cerrar aria-label="Cerrar"><span data-icono="cerrar"></span></button>
+      </header>
+      <ul class="lista-explicacion">
+        <li><strong>Sin servidor:</strong> los mensajes se guardan en este navegador y no llegan a otros móviles ni ordenadores.</li>
+        <li><strong>Equipo simulado:</strong> cambias de persona para ver cómo os organizaríais. Si abres Corrillo en dos pestañas (una como Ana y otra como Luis), lo que escribes en una aparece al momento en la otra.</li>
+        <li><strong>Privacidad:</strong> no uses datos reales de clientes; cualquiera que use este ordenador podría verlos.</li>
+      </ul>
+      <p class="dialogo-intro">Para chatear de verdad con tu equipo hace falta el siguiente paso: cuentas e inicio de sesión, una base de datos con permisos por canal y entrega de mensajes al instante (por ejemplo, con Supabase).</p>
+      <footer class="dialogo-pie"><button class="boton primario" type="button" data-cerrar>Entendido</button></footer>
+    </div>
+  </dialog>
+
+  <!-- Crear o editar canal -->
+  <dialog class="dialogo dialogo-pequeno" id="dlg-canal" aria-labelledby="dlg-canal-titulo">
+    <form class="dialogo-caja" id="form-canal" novalidate>
+      <header class="dialogo-cabecera">
+        <h2 id="dlg-canal-titulo">Crear canal</h2>
+        <button class="boton-icono" type="button" data-cerrar aria-label="Cerrar"><span data-icono="cerrar"></span></button>
+      </header>
+      <p class="dialogo-intro">Los canales ordenan las conversaciones por tema: ventas, pedidos, avisos…</p>
+      <label class="campo" for="canal-campo-nombre">Nombre</label>
+      <div class="campo-almohadilla">
+        <span aria-hidden="true">#</span>
+        <input id="canal-campo-nombre" maxlength="40" autocomplete="off" placeholder="pedidos-web" aria-describedby="canal-ayuda-nombre">
+      </div>
+      <p class="campo-ayuda" id="canal-ayuda-nombre"></p>
+      <label class="campo" for="canal-campo-descripcion">Descripción <small>(opcional)</small></label>
+      <textarea class="campo-texto" id="canal-campo-descripcion" maxlength="200" rows="2" placeholder="¿De qué se habla en este canal?"></textarea>
+      <p class="campo-error" id="canal-error" role="alert" hidden></p>
+      <footer class="dialogo-pie">
+        <button class="boton suave" type="button" id="btn-dlg-archivar" hidden>Archivar canal</button>
+        <span class="espaciador"></span>
+        <button class="boton secundario" type="button" data-cerrar>Cancelar</button>
+        <button class="boton primario" type="submit" id="btn-canal-guardar">Crear canal</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Gestionar el equipo -->
+  <dialog class="dialogo" id="dlg-equipo" aria-labelledby="equipo-titulo">
+    <div class="dialogo-caja">
+      <header class="dialogo-cabecera">
+        <h2 id="equipo-titulo">Tu equipo</h2>
+        <button class="boton-icono" type="button" data-cerrar aria-label="Cerrar"><span data-icono="cerrar"></span></button>
+      </header>
+      <p class="dialogo-intro">Crea a las personas de tu equipo ficticio. Después podrás escribir como cada una desde la barra lateral.</p>
+      <ul class="equipo-lista" id="equipo-lista"></ul>
+      <form class="equipo-nueva" id="form-persona-nueva" novalidate>
+        <h3>Añadir persona</h3>
+        <div class="equipo-nueva-fila">
+          <span id="nueva-previa"></span>
+          <input class="campo-texto" id="nueva-nombre" maxlength="30" placeholder="Nombre, p. ej. Carmen" aria-label="Nombre de la nueva persona" autocomplete="off">
+          <button class="boton primario" type="submit"><span data-icono="mas"></span> Añadir</button>
+        </div>
+        <div class="paleta" id="nueva-paleta" role="radiogroup" aria-label="Color"></div>
+        <p class="campo-error" id="nueva-error" role="alert" hidden></p>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Ajustes y datos -->
+  <dialog class="dialogo dialogo-pequeno" id="dlg-ajustes" aria-labelledby="ajustes-titulo">
+    <div class="dialogo-caja">
+      <header class="dialogo-cabecera">
+        <h2 id="ajustes-titulo">Ajustes y datos</h2>
+        <button class="boton-icono" type="button" data-cerrar aria-label="Cerrar"><span data-icono="cerrar"></span></button>
+      </header>
+      <p class="dialogo-intro">Todo lo de esta demo vive en este navegador. Guarda una copia o pásala a otro ordenador con un archivo.</p>
+      <p class="resumen-datos" id="resumen-datos"></p>
+      <div class="ajuste">
+        <div><strong>Exportar</strong><span>Descarga todo en un archivo .json.</span></div>
+        <button class="boton secundario" type="button" id="btn-exportar"><span data-icono="descargar"></span> Exportar</button>
+      </div>
+      <div class="ajuste">
+        <div><strong>Importar</strong><span>Sustituye los datos por los de un archivo exportado.</span></div>
+        <label class="boton secundario" for="archivo-importar"><span data-icono="subir"></span> Importar</label>
+        <input class="oculto" type="file" id="archivo-importar" accept=".json,application/json">
+      </div>
+      <div class="ajuste peligroso">
+        <div><strong>Borrar la demo</strong><span>Elimina personas, canales y mensajes, y vuelve a la bienvenida.</span></div>
+        <button class="boton peligro" type="button" id="btn-borrar-demo"><span data-icono="borrar"></span> Borrar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Insertar enlace -->
+  <dialog class="dialogo dialogo-pequeno" id="dlg-enlace" aria-labelledby="enlace-titulo">
+    <form class="dialogo-caja" id="form-enlace" novalidate>
+      <header class="dialogo-cabecera">
+        <h2 id="enlace-titulo">Insertar enlace</h2>
+        <button class="boton-icono" type="button" data-cerrar aria-label="Cerrar"><span data-icono="cerrar"></span></button>
+      </header>
+      <label class="campo" for="enlace-url">Dirección web</label>
+      <input class="campo-texto" id="enlace-url" inputmode="url" autocomplete="off" placeholder="https://ejemplo.com">
+      <p class="campo-ayuda">Truco: cualquier dirección que escribas en un mensaje se convierte sola en enlace.</p>
+      <p class="campo-error" id="enlace-error" role="alert" hidden></p>
+      <footer class="dialogo-pie">
+        <span class="espaciador"></span>
+        <button class="boton secundario" type="button" data-cerrar>Cancelar</button>
+        <button class="boton primario" type="submit">Insertar</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Confirmación (borrar, importar...) -->
+  <dialog class="dialogo dialogo-pequeno" id="dlg-confirmar" aria-labelledby="confirmar-titulo">
+    <form class="dialogo-caja" method="dialog">
+      <h2 id="confirmar-titulo"></h2>
+      <p class="dialogo-intro" id="confirmar-texto"></p>
+      <footer class="dialogo-pie">
+        <span class="espaciador"></span>
+        <button class="boton secundario" value="no" id="confirmar-no">Cancelar</button>
+        <button class="boton peligro" value="si" id="confirmar-si">Borrar</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Selector de emojis (flotante) y avisos -->
+  <div class="selector-emojis" id="selector-emojis" role="dialog" aria-label="Elegir emoji" hidden></div>
+  <div class="avisos" id="avisos" popover="manual" aria-live="polite"></div>
+
+  <!-- type="module" carga app.js después del HTML y permite repartir el código en archivos con import/export. -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>

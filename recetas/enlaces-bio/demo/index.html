@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MiEnlace · Tu página de enlaces</title>
+  <meta name="description" content="Monta tu página de enlaces con foto, bio y botones, y descárgala como un único index.html listo para publicar gratis.">
+  <meta name="theme-color" content="#FBF9F6">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='%23F07F3C' stroke-width='3'%3E%3Crect x='7.5' y='4.5' width='11' height='21' rx='5.5' transform='rotate(-45 13 15)'/%3E%3Crect x='13.5' y='4.5' width='11' height='21' rx='5.5' transform='rotate(45 19 15)'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="barra">
+    <div class="marca">
+      <span id="logo" class="marca-logo"></span>
+      <span class="marca-nombre">MiEnlace</span>
+      <span class="marca-lema">Tu página de enlaces, en tu propia dirección</span>
+    </div>
+    <span id="estado-guardado" class="estado-guardado">Se guarda solo en este navegador</span>
+  </header>
+
+  <div class="distribucion">
+    <main class="editor">
+      <!-- Franja que solo se ve la primera vez, mientras el proyecto es el ejemplo. -->
+      <div id="franja-ejemplo" class="franja-ejemplo" hidden>
+        <p><strong>Esto es un ejemplo</strong> para que veas cómo queda. Cámbialo a tu gusto o empieza con la página en blanco.</p>
+        <div class="franja-botones">
+          <button type="button" id="empezar-de-cero" class="boton boton-acento">Empezar desde cero</button>
+          <button type="button" id="quedarme-ejemplo" class="boton boton-texto">Seguir con el ejemplo</button>
+        </div>
+      </div>
+
+      <!-- 1. PERFIL -->
+      <section class="panel" aria-labelledby="t-perfil">
+        <h2 id="t-perfil" class="panel-titulo"><span class="paso">1</span>Perfil</h2>
+        <div class="perfil">
+          <button type="button" id="avatar" class="avatar" aria-label="Elegir foto de perfil">
+            <img id="avatar-img" alt="">
+            <svg class="avatar-vacio" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg>
+          </button>
+          <div class="perfil-acciones">
+            <div class="fila-botones">
+              <button type="button" id="cambiar-foto" class="boton boton-secundario">Subir foto</button>
+              <button type="button" id="quitar-foto" class="boton boton-texto" hidden>Quitar</button>
+            </div>
+            <p class="nota">Se recorta al centro en cuadrado y se reduce a 320 × 320 px.</p>
+            <input type="file" id="foto-archivo" accept="image/*" hidden>
+          </div>
+        </div>
+        <div class="campo">
+          <label for="nombre">Nombre</label>
+          <input id="nombre" type="text" maxlength="60" autocomplete="off" placeholder="Por ejemplo: Marta · Cerámica hecha a mano">
+        </div>
+        <div class="campo">
+          <div class="campo-cabecera">
+            <label for="bio">Bio</label>
+            <span id="contador-bio" class="contador">0/160</span>
+          </div>
+          <textarea id="bio" rows="3" maxlength="160" placeholder="Una frase sobre ti o tu negocio" aria-describedby="contador-bio"></textarea>
+        </div>
+      </section>
+
+      <!-- 2. ENLACES -->
+      <section class="panel" aria-labelledby="t-enlaces">
+        <h2 id="t-enlaces" class="panel-titulo"><span class="paso">2</span>Enlaces</h2>
+        <button type="button" id="anadir-enlace" class="boton-grande">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          Añadir enlace
+        </button>
+        <p id="enlaces-vacio" class="vacio">Todavía no hay enlaces. Añade tu web, tu tienda, tu agenda o tu WhatsApp.</p>
+        <ul id="lista-enlaces" class="lista-enlaces" aria-label="Tus enlaces, en orden"></ul>
+        <p class="nota">Arrastra <span aria-hidden="true">⋮⋮</span> para cambiar el orden. Vale una web, un email o un teléfono: si falta <code>https://</code>, se añade solo.</p>
+      </section>
+
+      <!-- 3. ASPECTO -->
+      <section class="panel" aria-labelledby="t-aspecto">
+        <h2 id="t-aspecto" class="panel-titulo"><span class="paso">3</span>Aspecto</h2>
+        <h3 class="subtitulo">Temas <span id="tema-personalizado" class="chip" hidden>Personalizado</span></h3>
+        <div id="temas" class="temas" role="group" aria-label="Temas"></div>
+
+        <h3 class="subtitulo">Personalizar</h3>
+        <div class="colores">
+          <label class="color">
+            <input type="color" id="color-fondo">
+            <span class="color-textos"><span>Fondo</span><span id="color-fondo-valor" class="color-valor"></span></span>
+          </label>
+          <label class="color">
+            <input type="color" id="color-boton">
+            <span class="color-textos"><span>Botones</span><span id="color-boton-valor" class="color-valor"></span></span>
+          </label>
+          <label class="color">
+            <input type="color" id="color-texto-boton">
+            <span class="color-textos"><span>Texto de los botones</span><span id="color-texto-boton-valor" class="color-valor"></span></span>
+          </label>
+        </div>
+
+        <!-- Avisos de contraste: se leen en voz alta cuando aparecen (role="status"). -->
+        <div role="status">
+          <div id="aviso-contraste-boton" class="alerta" hidden>
+            <span id="texto-aviso-boton"></span>
+            <button type="button" id="arreglar-contraste" class="boton boton-secundario boton-pequeno">Usar texto oscuro</button>
+          </div>
+          <div id="aviso-contraste-fondo" class="alerta" hidden><span></span></div>
+          <p id="contraste-ok" class="contraste-ok"></p>
+        </div>
+
+        <fieldset class="segmentos">
+          <legend>Forma de los botones</legend>
+          <div id="formas" class="segmentos-opciones"></div>
+        </fieldset>
+        <fieldset class="segmentos">
+          <legend>Tipo de letra</legend>
+          <div id="letras" class="segmentos-opciones"></div>
+        </fieldset>
+      </section>
+
+      <!-- 4. PUBLICAR -->
+      <section class="panel panel-publicar" aria-labelledby="t-publicar">
+        <h2 id="t-publicar" class="panel-titulo"><span class="paso">4</span>Publicar</h2>
+        <p class="publicar-texto">Descarga tu página como un único archivo <code>index.html</code>, lista para publicar gratis en Vercel.</p>
+        <div class="acciones-publicar">
+          <button type="button" id="exportar" class="boton boton-acento boton-exportar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg>
+            Exportar mi página
+          </button>
+          <div class="acciones-proyecto">
+            <button type="button" id="guardar-proyecto" class="boton boton-secundario">Guardar proyecto</button>
+            <button type="button" id="abrir-proyecto" class="boton boton-secundario">Abrir proyecto</button>
+            <input type="file" id="archivo-proyecto" accept=".json,application/json" hidden>
+          </div>
+        </div>
+        <label class="casilla"><input type="checkbox" id="firma"> Mostrar «Hecho con MiEnlace» al pie de la página</label>
+        <p class="nota nota-publica">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg>
+          La página exportada será <strong>pública</strong>: cualquiera con el enlace verá lo que pongas. No usa cookies ni analítica.
+          El proyecto (<code>.json</code>) sirve para seguir editándolo otro día.
+        </p>
+      </section>
+    </main>
+
+    <!-- VISTA PREVIA: un teléfono con la página dentro. En el móvil se abre a pantalla completa. -->
+    <aside id="panel-previa" class="previa" aria-label="Vista previa">
+      <div class="previa-cabecera">
+        <span>Vista previa</span>
+        <button type="button" id="cerrar-previa" class="boton boton-secundario boton-pequeno">Cerrar</button>
+      </div>
+      <div class="telefono">
+        <span class="telefono-isla" aria-hidden="true"></span>
+        <div id="pantalla-previa" class="pantalla">
+          <!-- sandbox sin "allow-scripts": dentro del teléfono no puede ejecutarse ningún código. -->
+          <iframe id="marco-previa" title="Vista previa de tu página" sandbox="allow-same-origin"></iframe>
+        </div>
+      </div>
+      <p class="previa-pie">Así la verán tus visitantes. Cambia mientras escribes.</p>
+    </aside>
+  </div>
+
+  <button type="button" id="ver-previa" class="boton-flotante">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+    Vista previa
+  </button>
+
+  <!-- Ventana con los siguientes pasos tras exportar. -->
+  <dialog id="dialogo-exportar" class="dialogo" aria-labelledby="t-exportado">
+    <div class="dialogo-icono" aria-hidden="true">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+    </div>
+    <h2 id="t-exportado">¡Tu página está descargada!</h2>
+    <p>Ya tienes <strong>index.html</strong> en tu carpeta de descargas. Para publicarla:</p>
+    <ol class="pasos">
+      <li><strong>Crea una carpeta</strong> nueva, por ejemplo <code id="carpeta-sugerida">mi-pagina</code>.</li>
+      <li><strong>Pon dentro</strong> el archivo <code>index.html</code> que acabas de descargar.</li>
+      <li><strong>Publícala</strong> con <code>/desplegar</code> del kit: te dará una dirección como <code>tu-nombre.vercel.app</code>.</li>
+      <li><strong>Copia esa dirección</strong> en la bio de tus redes. ¡Listo!</li>
+    </ol>
+    <p id="exportar-fuera" class="alerta" hidden></p>
+    <p class="nota">¿Quieres cambiar algo más adelante? Edítalo aquí, exporta otra vez y sustituye el <code>index.html</code> publicado.</p>
+    <div class="dialogo-botones">
+      <button type="button" id="cerrar-exportar" class="boton boton-acento">Entendido</button>
+    </div>
+  </dialog>
+
+  <!-- Molde de cada tarjeta de enlace: enlaces.js lo copia y lo rellena. -->
+  <template id="plantilla-tarjeta">
+    <li class="tarjeta">
+      <div class="tarjeta-cabecera">
+        <span class="asa" draggable="true" tabindex="0" role="button" title="Arrastra para mover">⋮⋮</span>
+        <button type="button" class="tarjeta-resumen">
+          <span class="tarjeta-icono" aria-hidden="true"></span>
+          <span class="tarjeta-textos">
+            <span class="tarjeta-titulo"></span>
+            <span class="tarjeta-url"></span>
+          </span>
+          <span class="etiqueta-oculto">Oculto</span>
+        </button>
+        <label class="interruptor" title="Visible u oculto">
+          <input type="checkbox" role="switch">
+          <span class="interruptor-pista" aria-hidden="true"></span>
+        </label>
+        <span class="orden">
+          <button type="button" class="boton-icono subir" title="Subir"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg></button>
+          <button type="button" class="boton-icono bajar" title="Bajar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+        </span>
+        <button type="button" class="boton-icono borrar" title="Borrar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button>
+      </div>
+      <div class="tarjeta-edicion">
+        <div class="campo">
+          <label class="etiqueta-titulo">Título</label>
+          <input class="campo-titulo" type="text" autocomplete="off" placeholder="Por ejemplo: Tienda online">
+        </div>
+        <div class="campo">
+          <label class="etiqueta-url">Dirección</label>
+          <input class="campo-url" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="tutienda.com, hola@tucorreo.com o +34 600 000 000">
+          <p class="ayuda-url"></p>
+        </div>
+        <fieldset class="iconos">
+          <legend>Icono</legend>
+          <div class="rejilla-iconos"></div>
+        </fieldset>
+        <div class="tarjeta-pie">
+          <button type="button" class="boton boton-secundario boton-pequeno cerrar-edicion">Listo</button>
+        </div>
+      </div>
+    </li>
+  </template>
+
+  <!-- Avisos flotantes y anuncios para lectores de pantalla. -->
+  <div id="aviso" class="aviso" role="status" aria-live="polite"></div>
+  <div id="anuncio" class="solo-lector" aria-live="polite"></div>
+
+  <!-- type="module" carga el código después del HTML y permite usar import/export entre archivos. -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

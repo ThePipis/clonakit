@@ -1,0 +1,517 @@
+/* Trazo: papel cálido y tinta, sensación de cuaderno.
+   Colores y medidas en variables: cambiando estas líneas cambias el aspecto de toda la app. */
+:root {
+  --papel: #FBF7EE;       /* lienzo crema */
+  --tinta: #1E2A3A;       /* azul noche: trazo por defecto y textos de la interfaz */
+  --tinta-suave: #5B6472; /* textos secundarios */
+  --acento: #C8553D;      /* terracota: herramienta activa y selección */
+  --acento-suave: rgba(200, 85, 61, 0.12);
+  --panel: #FFFFFF;       /* paneles blancos */
+  --borde: rgba(30, 42, 58, 0.1);
+  --hover: rgba(30, 42, 58, 0.07);
+  --sombra: 0 1px 3px rgba(30, 42, 58, 0.08), 0 6px 20px rgba(30, 42, 58, 0.1);
+  --radio: 12px;
+  --ajedrez: #ECE6D8;     /* cuadros de la vista previa (para ver la transparencia) */
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  color: var(--tinta);
+  color-scheme: light;
+}
+
+/* Modo oscuro: lo activa el menú (app.js pone data-tema="oscuro" en <html>). */
+:root[data-tema="oscuro"] {
+  --papel: #1B1E24;
+  --tinta: #E9E4D8;
+  --tinta-suave: #A9A496;
+  --acento-suave: rgba(200, 85, 61, 0.22);
+  --panel: #262A32;
+  --borde: rgba(233, 228, 216, 0.12);
+  --hover: rgba(233, 228, 216, 0.08);
+  --sombra: 0 1px 3px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.35);
+  --ajedrez: #30343C;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+/* El atributo hidden siempre gana, aunque otra regla diga display: flex. */
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;            /* la "página" no se mueve: se mueve la cámara del lienzo */
+  overscroll-behavior: none;   /* sin rebote ni "deslizar para recargar" en el móvil */
+  background: var(--papel);
+}
+
+body {
+  -webkit-user-select: none;
+  user-select: none;           /* que arrastrar no seleccione los textos de los botones */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none; /* sin el menú de "mantener pulsado" de iOS sobre la pizarra */
+}
+
+#lienzo {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;          /* los dedos los gestiona la app (dibujar, desplazar, pellizcar) */
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+/* Iconos: todos dibujados con línea, del color del texto. */
+svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+svg .relleno-suave { fill: currentColor; fill-opacity: 0.22; }
+svg .relleno-solido { fill: var(--panel); }
+
+/* ---------- Paneles flotantes ---------- */
+
+.panel {
+  position: fixed;
+  background: var(--panel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+.separador {
+  width: 1px;
+  align-self: stretch;
+  margin: 4px 2px;
+  background: var(--borde);
+}
+
+/* Marca (arriba a la izquierda) */
+.marca {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+}
+#logo { width: 28px; height: 28px; }
+
+/* Barra de herramientas (arriba, centrada) */
+.barra-herramientas {
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+  padding: 5px;
+}
+
+.herramienta,
+.boton-icono,
+.opcion {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+}
+.herramienta:hover,
+.boton-icono:hover:not(:disabled),
+.opcion:hover { background: var(--hover); }
+
+/* Herramienta activa: terracota con el icono en blanco. */
+.herramienta[aria-pressed="true"] {
+  background: var(--acento);
+  color: #FFFFFF;
+}
+
+/* Ayuda con el nombre y el atajo, al pasar el puntero (o al llegar con el teclado). */
+.herramienta { position: relative; }
+.herramienta::after {
+  content: attr(data-ayuda);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--tinta);
+  color: var(--papel);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s 0.25s;
+}
+.herramienta:hover::after,
+.herramienta:focus-visible::after { opacity: 1; }
+
+/* Panel de estilo (izquierda) */
+.panel-estilo {
+  top: 64px;
+  left: 12px;
+  width: 196px;
+  max-height: calc(100% - 140px);
+  overflow-y: auto;
+  padding: 10px 12px 12px;
+}
+.panel-estilo fieldset {
+  border: none;
+  margin: 0 0 10px;
+  padding: 0;
+  min-width: 0;
+}
+.panel-estilo fieldset:last-child { margin-bottom: 0; }
+.panel-estilo legend {
+  padding: 0;
+  margin-bottom: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+}
+.opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.opcion {
+  width: 36px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--hover);
+}
+.opcion[aria-pressed="true"] {
+  background: var(--acento-suave);
+  color: var(--acento);
+  box-shadow: inset 0 0 0 1.5px var(--acento);
+}
+
+/* Muestras de color */
+.colores { gap: 6px; }
+.muestra {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--borde);
+  background: var(--muestra);
+}
+.muestra[aria-pressed="true"] {
+  box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--acento);
+}
+
+/* Zoom, deshacer y rehacer (abajo a la izquierda) */
+.barra-inferior {
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+}
+.barra-inferior .boton-icono { width: 34px; height: 34px; }
+.boton-icono:disabled { opacity: 0.35; cursor: default; }
+.zoom-valor {
+  min-width: 58px;
+  height: 34px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-variant-numeric: tabular-nums;
+}
+.zoom-valor:hover { background: var(--hover); }
+
+/* Menú (arriba a la derecha) */
+.menu {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+}
+.boton-menu {
+  position: static;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+}
+.boton-menu:hover { background: var(--hover); }
+.menu-lista {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+}
+.menu-lista button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+}
+.menu-lista button:hover { background: var(--hover); }
+.menu-lista hr {
+  width: 100%;
+  margin: 4px 0;
+  border: none;
+  border-top: 1px solid var(--borde);
+}
+/* Casillas del menú: una marca ✓ cuando están activadas */
+.menu-lista [role="menuitemcheckbox"]::after {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid var(--tinta-suave);
+}
+.menu-lista [aria-checked="true"]::after {
+  content: "✓";
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  color: #FFFFFF;
+  background: var(--acento);
+  border-color: var(--acento);
+}
+.menu-lista .peligro { color: var(--acento); }
+
+/* ---------- Cuadro para escribir ---------- */
+
+#editor-texto {
+  position: fixed;
+  z-index: 5;
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  resize: none;
+  overflow: hidden;
+  white-space: pre;
+  caret-color: var(--acento);
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ---------- Ventanas (exportar y preguntas) ---------- */
+
+.ventana {
+  width: min(520px, calc(100% - 32px));
+  padding: 20px;
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  background: var(--panel);
+  color: var(--tinta);
+  box-shadow: var(--sombra);
+}
+.ventana::backdrop { background: rgba(30, 42, 58, 0.35); }
+.ventana h2 {
+  margin: 0 0 14px;
+  font-size: 18px;
+}
+.ventana-preguntar { width: min(400px, calc(100% - 32px)); }
+.ventana-preguntar p {
+  margin: 0 0 18px;
+  line-height: 1.45;
+}
+
+.vista-previa {
+  display: grid;
+  place-items: center;
+  height: 220px;
+  padding: 10px;
+  border-radius: 10px;
+  /* Tablero de ajedrez: deja ver qué partes de la imagen son transparentes. */
+  background-color: var(--panel);
+  background-image:
+    linear-gradient(45deg, var(--ajedrez) 25%, transparent 25%, transparent 75%, var(--ajedrez) 75%),
+    linear-gradient(45deg, var(--ajedrez) 25%, transparent 25%, transparent 75%, var(--ajedrez) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+  border: 1px solid var(--borde);
+}
+.vista-previa img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.mensaje {
+  min-height: 1.2em;
+  margin: 8px 0 4px;
+  color: var(--acento);
+  font-size: 13px;
+}
+
+.opciones-exportar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+.opciones-exportar fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.opciones-exportar fieldset:disabled { opacity: 0.45; }
+.opciones-exportar legend {
+  padding: 0;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tinta-suave);
+}
+
+/* Botones segmentados: radios de verdad (accesibles) con aspecto de botones. */
+.segmentos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.segmentos label { position: relative; }
+.segmentos input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.segmentos span {
+  display: block;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--hover);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.segmentos input:checked + span {
+  background: var(--acento-suave);
+  color: var(--acento);
+  box-shadow: inset 0 0 0 1.5px var(--acento);
+}
+.segmentos input:focus-visible + span {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+.segmentos input:disabled + span { opacity: 0.45; cursor: default; }
+
+.botones {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+.botones button {
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--borde);
+  font-weight: 600;
+}
+.botones .principal {
+  background: var(--acento);
+  border-color: var(--acento);
+  color: #FFFFFF;
+}
+.botones .secundario { background: var(--hover); }
+.botones button:disabled { opacity: 0.45; cursor: default; }
+
+/* ---------- Avisos y capa de soltar ---------- */
+
+.aviso {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  z-index: 10;
+  max-width: min(460px, calc(100% - 32px));
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--tinta);
+  color: var(--papel);
+  box-shadow: var(--sombra);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.capa-soltar {
+  position: fixed;
+  inset: 12px;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  border: 2px dashed var(--acento);
+  border-radius: 18px;
+  background: rgba(251, 247, 238, 0.85);
+  color: #1E2A3A;
+  font-size: 18px;
+  pointer-events: none;        /* deja pasar el archivo a la ventana */
+}
+:root[data-tema="oscuro"] .capa-soltar {
+  background: rgba(27, 30, 36, 0.85);
+  color: #E9E4D8;
+}
+
+.sin-js {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+}
+
+/* ---------- Pantallas estrechas (móvil) ---------- */
+
+@media (max-width: 720px) {
+  .marca { display: none; }
+  /* La barra se pega a la izquierda para dejar sitio al botón del menú y, si no cabe, se desliza. */
+  .barra-herramientas {
+    left: 8px;
+    right: 66px;
+    transform: none;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .herramienta { flex: 0 0 auto; width: 36px; height: 36px; }
+  .herramienta::after { display: none; } /* en táctil no hay "pasar el puntero" */
+  .menu { top: 8px; right: 8px; }
+  .panel-estilo { top: 62px; left: 8px; width: 172px; max-height: calc(100% - 130px); }
+  .barra-inferior { left: 8px; bottom: 8px; }
+  .opciones-exportar { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}

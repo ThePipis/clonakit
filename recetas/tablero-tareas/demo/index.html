@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Columnas</title>
+  <meta name="description" content="Organiza pedidos, clientes y proyectos en tableros con columnas y tarjetas que se arrastran. Sin cuentas ni instalaciones.">
+  <meta name="theme-color" content="#F1ECE2">
+  <!-- Icono de la pestaña: tres columnas de distinta altura, dibujado en SVG dentro de la propia página. -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%231F7A74'/%3E%3Crect x='7' y='13' width='5' height='12' rx='2.5' fill='%23F1ECE2'/%3E%3Crect x='13.5' y='7' width='5' height='18' rx='2.5' fill='%23F1ECE2'/%3E%3Crect x='20' y='16' width='5' height='9' rx='2.5' fill='%23E9C46A'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ============ Pantalla 1: inicio (mis tableros) ============ -->
+  <section id="pantalla-inicio" class="pantalla-inicio" hidden>
+    <header class="barra-app">
+      <a class="marca" href="#/" aria-label="Columnas, ir al inicio">
+        <span class="marca-logo" data-icono="logo"></span>
+        <span class="marca-nombre">Columnas</span>
+      </a>
+      <div class="barra-acciones">
+        <button id="boton-exportar-todo" class="boton fantasma" type="button">
+          <span class="icono" data-icono="descargar"></span><span class="texto-boton">Exportar<span class="solo-ancho"> todo</span></span>
+        </button>
+        <button id="boton-importar" class="boton fantasma" type="button">
+          <span class="icono" data-icono="subir"></span><span class="texto-boton">Importar</span>
+        </button>
+        <!-- Selector de archivos oculto: lo abre el botón "Importar". -->
+        <input id="archivo-importar" type="file" accept=".json,application/json" hidden>
+      </div>
+    </header>
+
+    <main class="inicio">
+      <div class="inicio-cabecera">
+        <h1>Mis tableros</h1>
+        <p class="inicio-subtitulo">Pedidos, clientes, encargos o proyectos: cada cosa en su columna, de un vistazo.</p>
+      </div>
+      <!-- Bienvenida: solo se ve cuando todavía no hay ningún tablero. -->
+      <div id="bienvenida" class="bienvenida" hidden>
+        <div class="bienvenida-texto">
+          <h2>Tu primer tablero, en diez segundos</h2>
+          <p>Ponle nombre, elige un color y empieza con tres columnas: «Pendiente», «En marcha» y «Terminado». Luego arrastra cada tarjeta a la columna que toque.</p>
+          <ul class="bienvenida-puntos">
+            <li>Sin cuentas ni instalaciones</li>
+            <li>Checklist, fechas límite y etiquetas de color</li>
+            <li>Copia de seguridad en un archivo</li>
+          </ul>
+        </div>
+        <!-- Dibujo hecho solo con HTML y CSS: tres columnas con tarjetas. -->
+        <div class="ilustracion" aria-hidden="true">
+          <div class="ilu-col"><b></b><i class="rojo"></i><i></i><i class="amarillo"></i></div>
+          <div class="ilu-col"><b></b><i class="azul"></i><i></i></div>
+          <div class="ilu-col"><b></b><i class="verde"></i></div>
+        </div>
+      </div>
+      <ul id="rejilla-tableros" class="rejilla" aria-label="Tableros"></ul>
+      <p id="nota-copia" class="nota-copia"></p>
+    </main>
+  </section>
+
+  <!-- ============ Pantalla 2: un tablero abierto ============ -->
+  <section id="pantalla-tablero" class="pantalla-tablero" hidden>
+    <header class="barra-tablero">
+      <div class="barra-fila">
+        <a class="boton-volver" href="#/" aria-label="Volver a mis tableros">
+          <span class="icono" data-icono="volver"></span><span class="solo-ancho">Tableros</span>
+        </a>
+        <h1 class="titulo-tablero">
+          <button id="nombre-tablero" class="editable" type="button" title="Pulsa para cambiar el nombre"></button>
+        </h1>
+        <div class="herramientas">
+          <label class="buscador">
+            <span class="icono" data-icono="buscar"></span>
+            <input id="buscador" type="search" placeholder="Buscar tarjetas…" aria-label="Buscar en títulos y descripciones" autocomplete="off">
+          </label>
+          <button id="boton-filtro" class="boton-barra" type="button" aria-haspopup="true" aria-expanded="false">
+            <span class="icono" data-icono="etiqueta"></span><span>Etiquetas</span>
+            <span id="filtro-cuenta" class="insignia" hidden></span>
+          </button>
+          <button id="boton-menu-tablero" class="boton-icono claro" type="button" aria-label="Más opciones del tablero" aria-haspopup="true" aria-expanded="false">
+            <span class="icono" data-icono="puntos"></span>
+          </button>
+        </div>
+      </div>
+      <div id="estado-filtro" class="estado-filtro" hidden>
+        <span id="texto-filtro" role="status"></span>
+        <button id="quitar-filtro" class="boton-pildora" type="button">
+          <span class="icono" data-icono="cerrar"></span>Quitar filtro
+        </button>
+      </div>
+    </header>
+    <main id="zona-listas" class="zona-listas" aria-label="Listas del tablero"></main>
+  </section>
+
+  <!-- ============ Paneles flotantes (popover) ============ -->
+  <div id="menu" class="panel-flotante menu" popover></div>
+  <div id="panel-filtro" class="panel-flotante" popover aria-label="Filtrar por etiquetas"></div>
+
+  <!-- ============ Ventana: nuevo tablero ============ -->
+  <dialog id="dialogo-nuevo-tablero" class="dialogo" aria-labelledby="nuevo-titulo">
+    <form id="form-nuevo-tablero" method="dialog" class="formulario">
+      <div id="vista-previa" class="vista-previa" aria-hidden="true">
+        <span id="vista-previa-nombre" class="vista-previa-nombre">Nuevo tablero</span>
+        <span class="vista-previa-listas"><i></i><i></i><i></i></span>
+      </div>
+      <h2 id="nuevo-titulo" class="pregunta-titulo">Nuevo tablero</h2>
+      <label class="campo-etiqueta" for="nuevo-nombre">Nombre</label>
+      <input id="nuevo-nombre" class="campo" name="nombre" required maxlength="80" autocomplete="off" placeholder="Por ejemplo, Pedidos de la tienda">
+      <fieldset class="grupo">
+        <legend class="campo-etiqueta">Color de fondo</legend>
+        <div id="nuevo-colores" class="muestras"></div>
+      </fieldset>
+      <fieldset class="grupo">
+        <legend class="campo-etiqueta">¿Cómo quieres empezar?</legend>
+        <div class="opciones-inicio">
+          <label class="opcion-tarjeta">
+            <input type="radio" name="inicio" value="ejemplo" checked>
+            <span><strong>Con tres listas</strong><small>Pendiente, En marcha y Terminado</small></span>
+          </label>
+          <label class="opcion-tarjeta">
+            <input type="radio" name="inicio" value="vacio">
+            <span><strong>Vacío</strong><small>Tú creas las listas que necesites</small></span>
+          </label>
+        </div>
+      </fieldset>
+      <div class="pregunta-botones">
+        <button class="boton principal" value="crear">Crear tablero</button>
+        <button class="boton secundario" value="" formnovalidate>Cancelar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ============ Ventana: detalle de una tarjeta ============ -->
+  <dialog id="dialogo-detalle" class="dialogo-detalle" aria-labelledby="detalle-titulo">
+    <div class="detalle">
+      <header class="detalle-cabecera">
+        <div id="detalle-puntos" class="detalle-puntos"></div>
+        <textarea id="detalle-titulo" class="detalle-titulo" rows="1" maxlength="300" aria-label="Título de la tarjeta"></textarea>
+        <p class="detalle-lista">en la lista <strong id="detalle-lista"></strong></p>
+        <button id="detalle-cerrar" class="boton-icono detalle-cerrar" type="button" aria-label="Cerrar">
+          <span class="icono" data-icono="cerrar"></span>
+        </button>
+      </header>
+
+      <div class="detalle-cuerpo">
+        <div class="detalle-principal">
+          <section class="bloque">
+            <h3 class="bloque-titulo"><span class="icono" data-icono="texto"></span>Descripción</h3>
+            <div id="descripcion-vista" class="descripcion-vista" tabindex="0" title="Pulsa (o Intro) para editar"></div>
+            <textarea id="descripcion-edicion" class="campo descripcion-edicion" rows="4" hidden aria-label="Descripción" placeholder="Dirección, teléfono, enlaces, notas…"></textarea>
+          </section>
+
+          <section class="bloque">
+            <h3 class="bloque-titulo"><span class="icono" data-icono="checklist"></span>Checklist</h3>
+            <div class="progreso">
+              <span id="progreso-texto" class="progreso-texto">0%</span>
+              <div id="progreso-barra" class="progreso-barra" role="progressbar" aria-label="Progreso de la checklist" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div id="progreso-relleno" class="progreso-relleno"></div>
+              </div>
+            </div>
+            <ul id="checklist" class="checklist"></ul>
+            <form id="form-checklist" class="form-checklist">
+              <input id="nuevo-elemento" class="campo" maxlength="200" autocomplete="off" placeholder="Añadir un elemento…" aria-label="Nuevo elemento de la checklist">
+              <button class="boton principal" type="submit">Añadir</button>
+            </form>
+          </section>
+        </div>
+
+        <aside class="detalle-lateral">
+          <section class="bloque">
+            <h3 class="bloque-titulo pequeno">Etiquetas</h3>
+            <div id="detalle-etiquetas" class="selector-etiquetas"></div>
+            <button id="editar-nombres" class="boton-enlace" type="button"></button>
+          </section>
+
+          <section class="bloque">
+            <h3 class="bloque-titulo pequeno">Fecha límite</h3>
+            <input id="detalle-fecha" class="campo" type="date" aria-label="Fecha límite">
+            <label class="casilla">
+              <input id="detalle-cumplida" type="checkbox">
+              <span>Cumplida</span>
+            </label>
+            <p id="detalle-estado-fecha" class="estado-fecha"></p>
+            <button id="quitar-fecha" class="boton-enlace" type="button">Quitar fecha</button>
+          </section>
+
+          <section class="bloque">
+            <h3 class="bloque-titulo pequeno">Mover a</h3>
+            <label class="campo-etiqueta pequena" for="mover-lista">Lista</label>
+            <select id="mover-lista" class="campo"></select>
+            <label class="campo-etiqueta pequena" for="mover-posicion">Posición</label>
+            <select id="mover-posicion" class="campo"></select>
+            <button id="boton-mover" class="boton secundario ancho" type="button">
+              <span class="icono" data-icono="mover"></span>Mover
+            </button>
+          </section>
+
+          <section class="bloque">
+            <h3 class="bloque-titulo pequeno">Acciones</h3>
+            <button id="boton-duplicar" class="boton secundario ancho" type="button">
+              <span class="icono" data-icono="copiar"></span>Duplicar
+            </button>
+            <button id="boton-borrar-tarjeta" class="boton peligro-suave ancho" type="button">
+              <span class="icono" data-icono="papelera"></span>Borrar tarjeta
+            </button>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Ventana genérica para confirmar, pedir un texto o elegir (la rellena dialogos.js). -->
+  <dialog id="dialogo-pregunta" class="dialogo dialogo-pequeno" aria-labelledby="pregunta-titulo"></dialog>
+
+  <!-- Avisos cortos que aparecen abajo ("Copia descargada", errores...). -->
+  <div id="avisos" class="avisos" popover="manual" aria-live="polite"></div>
+
+  <!-- type="module" carga app.js después del HTML y permite usar import/export. -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>

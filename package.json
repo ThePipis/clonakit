@@ -1,0 +1,22 @@
+{
+  "name": "clonakit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Crea tu propia versión de las apps que te gustan, de forma legal, y aprende a publicarla. Basado en REA.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": "^22.19.0 || ^24.11.0 || >=26.0.0"
+  },
+  "scripts": {
+    "diapositivas": "node herramientas/diapositivas.mjs",
+    "comprobar": "node herramientas/comprobar.mjs",
+    "investigar": "node herramientas/investigar.mjs",
+    "capturas": "node herramientas/capturas.mjs",
+    "probar": "node herramientas/probar.mjs",
+    "demo": "node herramientas/probar.mjs --demo"
+  },
+  "dependencies": {
+    "rea-agents": "6.4.0"
+  }
+}
